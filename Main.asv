@@ -1,4 +1,4 @@
-function [recDecisionTime, recPatientChoice, recComputerChoice, recWinner] = Main()
+function Main()
 %MAIN The app implements the scheme that asks the patient to press down 
 %  buttons as soon as he/she makes the decision. It counts from 5 - 1 then 
 %  GO-GO-GO. Patient can play with either computer or human
@@ -23,7 +23,7 @@ patMoney = initialMoney;
 expMoney = initialMoney;
 
 res = RespBox();
-scr = Screen();
+src = Screen();
 
 %% initial stage
 scr.initiate(patName,expName,initialMoney);
@@ -39,7 +39,6 @@ res.monitorTargetWait([0 0 0 0]);
 %% trial stage
 for i = 1:rounds
     % COUNT DOWN
-    scr.setP1Text(''); scr.setP2Text('');
     res.setVal([1 0 1 0 0 1 0 1]);
     t = timer('StartDelay', 0, 'Period', 1, 'TasksToExecute', 5, ...
         'ExecutionMode', 'fixedRate');
@@ -62,7 +61,7 @@ for i = 1:rounds
     end
     recDecisionTime(i) = toc;
     res.setVal([0 0 0 0 0 0 0 0]);
-    ret = res.monitorChangeWaitTime(5-toc);
+    ret = obj.res.monitorChangeWaitTime(5-toc);
     if ~cmpBtns(ret,[-1 -1 -1 -1]) % lift hands too early
         stop(t);
         scr.setMainText('You lift your hands too early. Please put your hands down');
@@ -80,29 +79,23 @@ for i = 1:rounds
     
     % GET DECISIONS
     scr.setMainText('GO-GO-GO');
-    recComputerChoice(i) = round(rand()) + 1;
-        
     patChoice = res.monitorChangeWaitTime(0.5);
     if cmpBtns(patChoice,[1 0 0 0]) % right hand
         recPatientChoice(i) = 1;
-        scr.setP1Text('X  O');
-    elseif cmpBtns(patChoice,[0 1 0 0]) %left hand
-        recPatientChoice(i) = 2;
-        scr.setP1Text('O  X');
-    elseif cmpBtns(patChoice,[-1 -1 -1 -1]) % too late
+    elseif comBtns(patChoice,[0 1 0 0]) %left hand
+        recPatientChoice(I) = 2;
+    elseif comBtns(patChoice,[-1 -1 -1 -1]) % too late
         scr.setMainText('You are too late. Please put your hands down');
         patMoney = patMoney - .1;
         scr.setMoney(1, patMoney);
         res.setVal([1 0 1 0 0 0 0 0]);
         res.monitorTargetWait([1 1 0 0]);
         res.clearVal();
-        pause(0.5);
         scr.setMainText('When you are ready, lift both hands to continue the next round');
         res.monitorTargetWait([0 0 0 0]);
         continue;
     else % wrong hands
         scr.setMainText('You lift both hands. Please put your hands down');
-        scr.setP1Text('O  O');
         patMoney = patMoney - .1;
         scr.setMoney(1, patMoney);
         res.setVal([1 0 1 0 0 0 0 0]);
@@ -112,32 +105,14 @@ for i = 1:rounds
         res.monitorTargetWait([0 0 0 0]);
         continue;
     end
-    
-    if recComputerChoice(i) == 1
-        scr.setP2Text('X  O');
-    else
-        scr.setP2Text('O  X');
-    end
-    
+    recComputerChoice(i) = round(rand()) + 1;
     
     % ANNOUNCE THE WINNER
-    if recComputerChoice(i) == recPatientChoice(i) % computer wins
+    if recComputerChoice(i) == recComputerChoice(i)
         recWinner(i) = 1;
-        scr.setMainText('Computer wins!');
-        patMoney = patMoney - .1;
-        expMoney = expMoney + .1;
-        scr.setMoney(1, patMoney);
-        scr.setMoney(2, expMoney);
-    else % patient wins
+    else 
         recWinner(i) = 2;
-        scr.setMainText('You wins!');
-        patMoney = patMoney + .1;
-        expMoney = expMoney - .1;
-        scr.setMoney(1, patMoney);
-        scr.setMoney(2, expMoney);
     end
-    
-    pause(1);
     
 end
 

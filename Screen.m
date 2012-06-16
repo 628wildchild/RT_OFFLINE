@@ -17,6 +17,7 @@ classdef Screen
             set(obj.guihandle.name1, 'String', name1);
             set(obj.guihandle.name2, 'String', name2);
             obj.setMoney(0, initialMoney);
+            obj.setP1Text(''); obj.setP2Text('');
         end
         
         function setMoney(obj, player, amount)
