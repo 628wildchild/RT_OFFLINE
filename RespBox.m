@@ -7,6 +7,7 @@ classdef RespBox
         d_out;
         lines_in;
         lines_out;
+        pauseT = 0.005;
     end
     
     methods
@@ -56,6 +57,7 @@ classdef RespBox
         function val = monitorChangeWait(obj)
             curVal = obj.getVal();
             while sum(obj.getVal ~= curVal)==0
+                pause(obj.pauseT);
             end
             val = obj.getVal;
         end
@@ -64,6 +66,7 @@ classdef RespBox
             curVal = obj.getVal();
             tic;
             while toc <= time
+                pause(obj.pauseT);
                 if sum(curVal ~= obj.getVal()) > 0 
                     val  = obj.getVal();
                     return;
@@ -74,7 +77,7 @@ classdef RespBox
         
         
         function monitorTarget(obj, tVal, callbackFunc)
-            t = timer('StartDelay', 0, 'Period', 0.01, 'TasksToExecute', Inf, ...
+            t = timer('StartDelay', 0, 'Period', 0.1, 'TasksToExecute', Inf, ...
                 'ExecutionMode', 'fixedRate');
             t.TimerFcn = {@monitorVal, obj, callbackFunc, tVal, t};
             start(t);
@@ -90,6 +93,7 @@ classdef RespBox
         function val = monitorTargetWait(obj, tVal)
             tic;
             while sum(obj.getVal == tVal)~=4
+                pause(obj.pauseT);
             end
             val = obj.getVal;
         end        
@@ -97,9 +101,20 @@ classdef RespBox
         function val = monitorTargetWaitTime(obj, tVal, tTime)
             tic;
             while sum(obj.getVal == tVal)~=4
+                pause(obj.pauseT);
                 if (toc >= tTime); break; end
             end
             val = obj.getVal;
+        end
+        
+        function val = monitor2TargetsWaitTime(obj, tVal1, tVal2, tTime)
+            tic;
+            v = obj.getVal;
+            while sum(v == tVal1)~=4 && sum(v == tVal2)~=4
+                pause(obj.pauseT);
+                if (toc >= tTime); break; end
+            end
+            val = v;
         end
         
         function monitorTargetChange(obj, tVal, callbackFunc)
