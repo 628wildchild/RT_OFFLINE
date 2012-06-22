@@ -7,7 +7,6 @@ clear all;
 rng;
 
 %% parameters
-player          = 0;            % play with computer (0) or human (1)
 patName         = 'Patient';    % patient name
 expName         = 'Uri';        % experimenter name
 initialMoney    = 5;            % initial endowment

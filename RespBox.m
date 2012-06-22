@@ -11,6 +11,7 @@ classdef RespBox
     end
     
     methods
+        %% constructor - initilize response box
         function obj = RespBox()
             dio_info=daqhwinfo('nidaq');
             if (isempty(dio_info.BoardNames))
@@ -27,6 +28,7 @@ classdef RespBox
             addline(obj.d_out,obj.lines_out-1,1,'Out');
         end
         
+        %% primitive functions, get value and set value
         function btns = getVal(obj)
             btns=~getvalue(obj.d_in.Line(obj.lines_in));
         end
@@ -39,6 +41,67 @@ classdef RespBox
             putvalue(obj.d_out.Line(obj.lines_out), [0 0 0 0 0 0 0 0]);
         end
         
+        %% high level functions [C = callback, W = wait] 
+        
+        % [W] monitor changes of the response box, call back when a change
+        % occured. return changed value. 
+        function val = monitorChangeWait(obj)
+            curVal = obj.getVal();
+            while sum(obj.getVal ~= curVal)==0
+                pause(obj.pauseT);
+            end
+            val = obj.getVal;
+        end
+
+        % [W] return when changeing to a specific value. return the
+        % specific value
+        function val = monitorTargetWait(obj, tVal)
+            rec = 0;
+            val = obj.getVal;
+            while sum(val == tVal)~=4
+                rec = exitSeq(rec, val);
+                pause(obj.pauseT);
+                val = obj.getVal;
+            end
+        end        
+        
+        % [W] monitor changes of the responsce box for a specific time
+        % (sec). return changed value, or [-1 -1 -1 -1] if timeout 
+        function val = monitorChangeWaitTime(obj, time) 
+            rec = 0;
+            curVal = obj.getVal();
+            tic;
+            while toc <= time
+                rec = exitSeq(rec, obj.getVal());
+                pause(obj.pauseT);
+                if sum(curVal ~= obj.getVal()) > 0 
+                    val  = obj.getVal();
+                    return;
+                end
+            end
+            val = [-1 -1 -1 -1];
+        end
+        
+        % [W] monitor two targets together and wait, or timeout. The
+        % timeout returns [-1 -1 -1 -1], otherwise return the specific
+        % value
+        function val = monitor2TargetsWaitTime(obj, tVal1, tVal2, tTime)
+            rec = 0;
+            tic;
+            v = obj.getVal;
+            while sum(v == tVal1)~=4 && sum(v == tVal2)~=4
+                rec = exitSeq(rec, obj.getVal());
+                pause(obj.pauseT);
+                if (toc >= tTime)
+                    val = [-1 -1 -1 -1];
+                    return;
+                end
+            end
+            val = v;
+        end
+
+        % [C] monitor changes of the response box, call back when a change
+        % occured. 
         function monitorChange(obj, callbackFunc)
             t = timer('StartDelay', 0, 'Period', 0.01, 'TasksToExecute', Inf, ...
                 'ExecutionMode', 'fixedRate');
@@ -54,28 +117,7 @@ classdef RespBox
             end
         end
         
-        function val = monitorChangeWait(obj)
-            curVal = obj.getVal();
-            while sum(obj.getVal ~= curVal)==0
-                pause(obj.pauseT);
-            end
-            val = obj.getVal;
-        end
-        
-        function val = monitorChangeWaitTime(obj, time) 
-            curVal = obj.getVal();
-            tic;
-            while toc <= time
-                pause(obj.pauseT);
-                if sum(curVal ~= obj.getVal()) > 0 
-                    val  = obj.getVal();
-                    return;
-                end
-            end
-            val = [-1 -1 -1 -1];
-        end
-        
-        
+        % [C] callback when changing to a specific value. 
         function monitorTarget(obj, tVal, callbackFunc)
             t = timer('StartDelay', 0, 'Period', 0.1, 'TasksToExecute', Inf, ...
                 'ExecutionMode', 'fixedRate');
@@ -89,34 +131,24 @@ classdef RespBox
                 end
             end
         end
-        
-        function val = monitorTargetWait(obj, tVal)
-            tic;
-            while sum(obj.getVal == tVal)~=4
-                pause(obj.pauseT);
-            end
-            val = obj.getVal;
-        end        
 
+        % [C] return when changing tp a specific value, or timeout. The
+        % timeout returns [-1 -1 -1 -1]; otherwise return the specific
+        % value
         function val = monitorTargetWaitTime(obj, tVal, tTime)
             tic;
             while sum(obj.getVal == tVal)~=4
                 pause(obj.pauseT);
-                if (toc >= tTime); break; end
+                if (toc >= tTime)
+                    val = [-1 -1 -1 -1];
+                    return;
+                end
             end
             val = obj.getVal;
-        end
-        
-        function val = monitor2TargetsWaitTime(obj, tVal1, tVal2, tTime)
-            tic;
-            v = obj.getVal;
-            while sum(v == tVal1)~=4 && sum(v == tVal2)~=4
-                pause(obj.pauseT);
-                if (toc >= tTime); break; end
-            end
-            val = v;
-        end
-        
+        end      
+
+        % [C] monitor both target and change. (do not use becuase there is
+        % a bug) 
         function monitorTargetChange(obj, tVal, callbackFunc)
             t = timer('StartDelay', 0, 'Period', 0.01, 'TasksToExecute', Inf, ...
                 'ExecutionMode', 'fixedRate');
@@ -136,7 +168,21 @@ classdef RespBox
             end
         end
         
-        
+    end
+    
+    methods (Access = private)
+        function output = exitSeq(input, value)
+            output = input;
+            if input == 0 && sum(value == [0 0 0 1]) == 4
+                output = 1; return;
+            elseif input == 1 && sum(value == [0 0 1 0]) == 4
+                output = 2; return;
+            elseif input == 2 && sum(value == [0 1 0 0]) == 4
+                output = 3; return;
+            elseif input == 3 && sum(value == [1 0 0 0]) == 4
+                error('Forced exit');
+            end
+        end
     end
     
 end
