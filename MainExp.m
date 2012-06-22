@@ -43,19 +43,18 @@ for i = 1:rounds
     t = timer('StartDelay', 0, 'Period', 1, 'TasksToExecute', 5, ...
         'ExecutionMode', 'fixedRate');
     t.TimerFcn = {@updateCountdown, scr};
-    tic;
+    tid = tic;
     start(t);
     ret = res.monitor2TargetsWaitTime([1 1 0 0], [0 0 1 1], 5);
     if cmpBtns(ret, [1 1 0 0])
-        recPatDecisionTime(i) = toc; 
-        ret = res.monitorTargetWaitTime([1 1 1 1], 5-toc);
-        recExpDecisionTime(i) = toc; 
+        recPatDecisionTime(i) = toc(tid); 
+        ret = res.monitorTargetWaitTime([1 1 1 1], 5-toc(tid));
+        recExpDecisionTime(i) = toc(tid); 
     else
-        recExpDecisionTime(i) = toc; 
-        ret = res.monitorTargetWaitTime([1 1 1 1], 5-toc);
-        recPatDecisionTime(i) = toc; 
+        recExpDecisionTime(i) = toc(tid); 
+        ret = res.monitorTargetWaitTime([1 1 1 1], 5-toc(tid));
+        recPatDecisionTime(i) = toc(tid); 
     end
-    curT = toc;
     
     if cmpBtns(ret, [1 1 0 0]) || cmpBtns(ret, [1 1 1 0]) % experimenter too slow
         stop(t);
@@ -97,7 +96,7 @@ for i = 1:rounds
         continue;
     end
     res.setVal([0 0 0 0 0 0 0 0]);
-    ret = res.monitorChangeWaitTime(5-toc);
+    ret = res.monitorChangeWaitTime(5-toc(tid));
     if ~cmpBtns(ret,[-1 -1 -1 -1]) % lift hands too early
         stop(t);
         if cmpBtns(ret,[1 1 1 0]) || cmpBtns(ret,[1 1 0 0])

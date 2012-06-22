@@ -59,7 +59,7 @@ classdef RespBox
             rec = 0;
             val = obj.getVal;
             while sum(val == tVal)~=4
-                rec = exitSeq(rec, val);
+                rec = obj.exitSeq(rec, val);
                 pause(obj.pauseT);
                 val = obj.getVal;
             end
@@ -72,7 +72,7 @@ classdef RespBox
             curVal = obj.getVal();
             tic;
             while toc <= time
-                rec = exitSeq(rec, obj.getVal());
+                rec = obj.exitSeq(rec, obj.getVal());
                 pause(obj.pauseT);
                 if sum(curVal ~= obj.getVal()) > 0 
                     val  = obj.getVal();
@@ -90,7 +90,7 @@ classdef RespBox
             tic;
             v = obj.getVal;
             while sum(v == tVal1)~=4 && sum(v == tVal2)~=4
-                rec = exitSeq(rec, obj.getVal());
+                rec = obj.exitSeq(rec, obj.getVal());
                 pause(obj.pauseT);
                 if (toc >= tTime)
                     val = [-1 -1 -1 -1];
@@ -100,6 +100,21 @@ classdef RespBox
             val = v;
         end
 
+        % [W] return when changing tp a specific value, or timeout. The
+        % timeout returns [-1 -1 -1 -1]; otherwise return the specific
+        % value
+        function val = monitorTargetWaitTime(obj, tVal, tTime)
+            tic;
+            while sum(obj.getVal == tVal)~=4
+                pause(obj.pauseT);
+                if (toc >= tTime)
+                    val = [-1 -1 -1 -1];
+                    return;
+                end
+            end
+            val = obj.getVal;
+        end      
+        
         % [C] monitor changes of the response box, call back when a change
         % occured. 
         function monitorChange(obj, callbackFunc)
@@ -132,21 +147,6 @@ classdef RespBox
             end
         end
 
-        % [C] return when changing tp a specific value, or timeout. The
-        % timeout returns [-1 -1 -1 -1]; otherwise return the specific
-        % value
-        function val = monitorTargetWaitTime(obj, tVal, tTime)
-            tic;
-            while sum(obj.getVal == tVal)~=4
-                pause(obj.pauseT);
-                if (toc >= tTime)
-                    val = [-1 -1 -1 -1];
-                    return;
-                end
-            end
-            val = obj.getVal;
-        end      
-
         % [C] monitor both target and change. (do not use becuase there is
         % a bug) 
         function monitorTargetChange(obj, tVal, callbackFunc)
@@ -171,15 +171,15 @@ classdef RespBox
     end
     
     methods (Access = private)
-        function output = exitSeq(input, value)
+        function output = exitSeq(obj, input, value)
             output = input;
-            if input == 0 && sum(value == [0 0 0 1]) == 4
+            if input == 0 && sum(value == [1 0 0 0]) == 4
                 output = 1; return;
-            elseif input == 1 && sum(value == [0 0 1 0]) == 4
+            elseif input == 1 && sum(value == [0 1 0 0]) == 4
                 output = 2; return;
-            elseif input == 2 && sum(value == [0 1 0 0]) == 4
+            elseif input == 2 && sum(value == [0 0 1 0]) == 4
                 output = 3; return;
-            elseif input == 3 && sum(value == [1 0 0 0]) == 4
+            elseif input == 3 && sum(value == [0 0 0 1]) == 4
                 error('Forced exit');
             end
         end
