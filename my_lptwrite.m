@@ -2,6 +2,10 @@ function my_lptwrite (port, msg)
 % function my_lptwrite (port, msg)
 % 
 % Slightly eases writing to parallel port
+if ~exist('io32')
+    return;
+end
+
 if (nargin==1)
     init=(port==0);
     msg=port;

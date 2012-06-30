@@ -1,6 +1,6 @@
-function [recPatientChoice, recExperimenterChoice, recWinner, recVoice] = cMainExp()
-%CMAIN The app implements the scheme that counts down from 10-1, for every
-%half seconds. It implements a voice recording. With experimenter
+function [ recPatientChoice, recExperimenterChoice, recWinner ] = countMainExp()
+%COUNTMAINEXP The app implements the scheme that counts down from 5-1, each every
+%one second. (The basic count-down function). With the experimenter
 
 clear all;
 rng;
@@ -15,14 +15,12 @@ rounds          = 5;            % rounds
 recPatientChoice = zeros(rounds, 1);
 recExperimenterChoice = zeros(rounds, 1);
 recWinner = zeros(rounds, 1);
-recVoice = {};
 
 patMoney = initialMoney;
 expMoney = initialMoney;
 
 res = RespBox();
 scr = Screen();
-recObj = audiorecorder;
 
 %% initial stage
 scr.initiate(patName,expName,initialMoney);
@@ -37,7 +35,7 @@ for i = 1:rounds
     % COUNT DOWN
     scr.setP1Text(''); scr.setP2Text('');
     res.setVal([1 0 1 0 0 1 0 1]);
-    t = timer('StartDelay', 0, 'Period', 0.5, 'TasksToExecute', 10, ...
+    t = timer('StartDelay', 0, 'Period', 1, 'TasksToExecute', 5, ...
         'ExecutionMode', 'fixedRate');
     t.TimerFcn = {@updateCountdown, scr};
     tic;
@@ -155,12 +153,9 @@ for i = 1:rounds
     
     % ASK WHEN DECISION IS MADE
     res.setVal([1 0 1 0 0 1 0 1]);
-    scr.setMainText('When did you made your decision? Hands down when finish');
-    record(recObj);
+    scr.setMainText('Press down your hands');
     while sum(res.getVal == [1 1 1 1])~= 4
     end
-    stop(recObj);
-    recVoice{i} = getaudiodata(recObj);
     res.clearVal();
     
 end
