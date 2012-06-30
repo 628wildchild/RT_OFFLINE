@@ -99,7 +99,7 @@ for i = 1:rounds
     % experimenter choice
     if cmpBtns(pplChoice(3:4),[1 0]) % right hand
         recExperimenterChoice(i) = 1;
-        scr.set21Text('X  O');
+        scr.setP1Text('X  O');
     elseif cmpBtns(pplChoice(3:4),[0 1]) %left hand
         recExperimenterChoice(i) = 2;
         scr.setP2Text('O  X');
@@ -171,9 +171,9 @@ end
 
 %% announce the winner
 if patMoney > expMoney
-    scr.setMainText('Ended. %s wins!', patName);
+    scr.setMainText(sprintf('Ended. %s wins!', patName));
 elseif patMoney < expMoney
-    scr.setMainText('Ended. %s wins!', expName);
+    scr.setMainText(sprintf('Ended. %s wins!', expName));
 else 
     scr.setMainText('Ended. Ties!');
 end

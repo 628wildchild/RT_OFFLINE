@@ -9,7 +9,7 @@ rng;
 patName         = 'Patient';    % patient name
 expName         = 'Uri';        % experimenter name
 initialMoney    = 5;            % initial endowment
-rounds          = 5;            % rounds
+rounds          = 1;            % rounds
 
 %% set up
 recPatientChoice = zeros(rounds, 1);
@@ -128,9 +128,9 @@ end
 
 %% announce the winner
 if patMoney > expMoney
-    scr.setMainText('Ended. %s wins!', patName);
+    scr.setMainText(sprintf('Ended. %s wins!', patName));
 elseif patMoney < expMoney
-    scr.setMainText('Ended. %s wins!', expName);
+    scr.setMainText(sprintf('Ended. %s wins!', expName));
 else 
     scr.setMainText('Ended. Ties!');
 end

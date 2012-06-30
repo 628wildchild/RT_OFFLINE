@@ -10,7 +10,7 @@ rng;
 patName         = 'Patient';    % patient name
 expName         = 'Uri';        % experimenter name
 initialMoney    = 5;            % initial endowment
-rounds          = 5;            % rounds
+rounds          = 20;            % rounds
 
 %% set up
 recPatDecisionTime = zeros(rounds, 1);
@@ -45,6 +45,7 @@ for i = 1:rounds
     t.TimerFcn = {@updateCountdown, scr};
     tid = tic;
     start(t);
+    
     ret = res.monitor2TargetsWaitTime([1 1 0 0], [0 0 1 1], 5);
     if cmpBtns(ret, [1 1 0 0])
         recPatDecisionTime(i) = toc(tid); 
@@ -126,7 +127,8 @@ for i = 1:rounds
     
     % GET DECISIONS
     scr.setMainText('GO-GO-GO');   
-    choice = res.monitorChangeWaitTime(0.5);
+    pause(0.5);
+    choice = res.getVal();
     
     err = [0 0];
     if cmp2Btns(choice(1:2),[1 0]) % right hand
@@ -164,8 +166,8 @@ for i = 1:rounds
     end
         
     % HANDLE THE ERRORS
-    if err(1) > 0; patMoney = patMoney - 1; scr.setMoney(1, patMoney); end
-    if err(2) > 0; expMoney = expMoney - 1; scr.setMoney(2, expMoney); end
+    if err(1) > 0; patMoney = patMoney - .1; scr.setMoney(1, patMoney); end
+    if err(2) > 0; expMoney = expMoney - .1; scr.setMoney(2, expMoney); end
     if sum(err) > 0
         errStr = '';
         if err(1) == err(2)
@@ -209,8 +211,18 @@ for i = 1:rounds
         scr.setMoney(2, expMoney);
     end
     
-    pause(1);
+    res.clearVal();
+    scr.setMainText('Please lift your hands');
+    res.monitorTargetWait([0 0 0 0]);
     
+end
+
+if patMoney > expMoney
+    scr.setMainText(sprintf('Session Ended. %s is the winner', patName));
+elseif patMoney < expMoney
+    scr.setMainText(sprintf('Session Ended. %s is the winner', expName));
+else 
+    scr.setMainText('Session Ended. Tied.');
 end
 
 end

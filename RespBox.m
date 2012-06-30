@@ -91,6 +91,7 @@ classdef RespBox
             v = obj.getVal;
             while sum(v == tVal1)~=4 && sum(v == tVal2)~=4
                 rec = obj.exitSeq(rec, obj.getVal());
+                v = obj.getVal;
                 pause(obj.pauseT);
                 if (toc >= tTime)
                     val = [-1 -1 -1 -1];
